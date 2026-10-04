@@ -2,6 +2,11 @@
   "name": "quantum-dashboard",
   "version": "2026.10.0",
   "private": true,
+  "license": "EUPL-1.2",
+  "author": "Fabrizio Bertone",
+  "contributors": [
+    "Paolo Viviani"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
