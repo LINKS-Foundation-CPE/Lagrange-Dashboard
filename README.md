@@ -96,6 +96,7 @@ Optional — each feature is simply absent when its variable is unset:
 | `VITE_MACHINE_METRICS_URL` | Monitoring overview page, embedded as **Machine Metrics**. |
 | `VITE_MACHINE_STATUS_MONITORS` | Which monitors the status panel shows, `tag` or `tag:Label`, comma separated. **Do not quote it**; unset falls back to the status site's aggregate monitor. |
 | `VITE_DOCS_URL` | Documentation site. A sidebar link opening in a new tab, not a panel. |
+| `VITE_CALIBRATION_REPORTS_URL` | The calibration reports page the gateway publishes, `https://<store>/<bucket>/calibration/index.html`. A **Calibration Reports** sidebar link, opening in a new tab, for every signed-in user. |
 
 Both panels are cross-origin frames, so whatever serves those pages must not
 send `X-Frame-Options`, and any `Content-Security-Policy: frame-ancestors` it

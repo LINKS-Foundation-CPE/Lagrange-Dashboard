@@ -9,7 +9,7 @@ import {
   TextInput,
 } from "react-admin";
 import { useBackendToken } from "../../hooks/useBackendToken";
-import { DefaultProjectInput } from "../components/DefaultProjectInput";
+import { UserDefaultProjectInput } from "../components/DefaultProjectInput";
 
 export const UserEdit = () => {
   // const [decodedBackend, setDecodedBackend] = useState({roles:['']})
@@ -37,7 +37,7 @@ export const UserEdit = () => {
         <TextInput source="email" label="Username" />
         <BooleanInput source="organization_manager" />
         <BooleanInput source="organization_auditor" />
-        <DefaultProjectInput />
+        <UserDefaultProjectInput />
         {/* Pulse (sweep) access. Normally mirrored from the identity provider
             at login; admins grant it here for users the IdP doesn't cover —
             e.g. HPC cluster accounts that never log in to the dashboard. */}

@@ -15,9 +15,11 @@ import InsightsIcon from "@mui/icons-material/Insights";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import BookOnlineIcon from "@mui/icons-material/BookOnline";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import TuneIcon from "@mui/icons-material/Tune";
 import { useBackendToken } from "./hooks/useBackendToken";
 import { useConfig } from "./hooks/useConfig";
 import {
+  CALIBRATION_REPORTS_URL,
   DOCS_URL,
   MACHINE_METRICS_URL,
   MACHINE_STATUS_URL,
@@ -25,7 +27,7 @@ import {
 
 export const CustomMenu = () => {
   const decodedToken = useBackendToken();
-  const { slotConstrainedReservations } = useConfig();
+  const { slotConstrainedReservations, jobPortalOnly } = useConfig();
 
   if (!decodedToken) {
     return <div>Loading...</div>;
@@ -43,8 +45,11 @@ export const CustomMenu = () => {
 
   // The admin section is shown to anyone with some administrative capability:
   // platform admins, org managers (org-scoped) and PIs (project-scoped).
+  // In job-portal-only mode there is nothing to administer here — the backend
+  // does not mount any of it — so the section goes regardless of role.
   const showAdminSection =
-    isAdmin || isReadOnlyAdmin || isOrgManager || isProjectAdmin;
+    !jobPortalOnly &&
+    (isAdmin || isReadOnlyAdmin || isOrgManager || isProjectAdmin);
 
   // Projects item: platform admins, org managers and PIs. The backend
   // `administrable=true` filter scopes the rows (admin=all, org-manager=their
@@ -57,8 +62,10 @@ export const CustomMenu = () => {
 
   // Billing reports: platform admins see every organization; managers and
   // auditors are scoped to their own by the backend. Not PIs — a project's
-  // consumption is the budget ledger, not an accounting report.
-  const showReports = isPlatformAdmin || isOrgManager || isOrgAuditor;
+  // consumption is the budget ledger, not an accounting report. Not mounted in
+  // job-portal-only mode.
+  const showReports =
+    !jobPortalOnly && (isPlatformAdmin || isOrgManager || isOrgAuditor);
 
   // Reservations, list and calendar. Both sit in the Admin section: they are
   // administrative views of everything the caller may reach, not a personal
@@ -66,7 +73,8 @@ export const CustomMenu = () => {
   // they administer, an org manager their organization, an admin everything,
   // and the backend does the scoping. Read-only platform and organization roles
   // are deliberately not here, matching the gate the calendar has always had.
-  const showReservations = isAdmin || isOrgManager || isProjectAdmin;
+  const showReservations =
+    !jobPortalOnly && (isAdmin || isOrgManager || isProjectAdmin);
 
   // Slot-less reservations => hide both slots items in the admin section.
   const slotLess = slotConstrainedReservations === false;
@@ -86,13 +94,17 @@ export const CustomMenu = () => {
         overflowY: "auto",
       }}
     >
-      {/* Common section: no header, shown to everyone. */}
-      <Menu.DashboardItem />
-      <Menu.Item
-        to="/my-projects"
-        primaryText="My Projects"
-        leftIcon={<FolderIcon />}
-      />
+      {/* Common section: no header, shown to everyone. In job-portal-only mode
+          the dashboard route IS the job list, so it would duplicate the "My
+          Jobs" entry below under a misleading name. */}
+      {!jobPortalOnly && <Menu.DashboardItem />}
+      {!jobPortalOnly && (
+        <Menu.Item
+          to="/my-projects"
+          primaryText="My Projects"
+          leftIcon={<FolderIcon />}
+        />
+      )}
       <Menu.Item
         to="/my-jobs"
         primaryText="My Jobs"
@@ -112,6 +124,19 @@ export const CustomMenu = () => {
           to="/machine-metrics"
           primaryText="Machine Metrics"
           leftIcon={<InsightsIcon />}
+        />
+      )}
+      {/* Calibration reports: public data, so every signed-in user. A link
+          like Documentation below, for the same reasons. */}
+      {CALIBRATION_REPORTS_URL && (
+        <Menu.Item
+          to={CALIBRATION_REPORTS_URL}
+          component="a"
+          href={CALIBRATION_REPORTS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          primaryText="Calibration Reports"
+          leftIcon={<TuneIcon />}
         />
       )}
       {/* Documentation opens in a new tab instead of a route: it is a separate

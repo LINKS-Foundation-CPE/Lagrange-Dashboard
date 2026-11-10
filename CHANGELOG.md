@@ -18,6 +18,32 @@ Entries marked **Breaking:** require action on upgrade — typically a change to
 
 ## [Unreleased]
 
+## [2026.11.0] — 2026-11-10
+
+### Fixed
+- **The default-project pickers offer only valid projects** (#31). They listed
+  every project on the platform. *Edit user* now offers only the projects that
+  user is a member of, the only ones the backend accepts. *Create user* (single
+  and bulk) offers only the projects the caller may hand out: all of them for a
+  platform admin, the caller's organization's for an organization manager.
+
+### Added
+- **Job-portal-only mode.** The dashboard now honours `jobPortalOnly` from the
+  backend's `/config`: when the backend runs with `JOB_PORTAL_ONLY=true` it
+  does not mount the management surface at all, so the UI hides it rather than
+  rendering menu entries and routes that can only 404. Projects, users,
+  organizations, slots, reservations, billing reports, tags, logs,
+  announcements and notifications (including the app-bar bell and its polling)
+  are not registered; the job list becomes the landing page. Nothing changes for
+  a normal deployment — the flag defaults to false, and the UI keeps its
+  previous behaviour when `/config` is unreachable. `useConfig` gained an
+  `isLoaded` flag, and `<App>` waits for it so the full menu never flashes
+  before being hidden.
+- **Calibration Reports** in the sidebar, for every signed-in user: a link,
+  opening in a new tab, to the calibration reports page the gateway already
+  publishes in the object store (`calibration/index.html`). Set
+  `VITE_CALIBRATION_REPORTS_URL` to it; unset, the item is hidden.
+
 ## [2026.10.0] — 2026-10-02
 
 ### Fixed

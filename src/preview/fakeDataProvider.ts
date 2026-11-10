@@ -33,7 +33,7 @@ const ORGS = [
   "LINKS Foundation",
   "Politecnico di Torino",
   "INRiM",
-  "CINECA",
+  "Example HPC Centre",
 ];
 const STATUSES = ["completed", "ready", "failed", "submitted"];
 /** A plausible controlled vocabulary, so the tag screens have something to show. */

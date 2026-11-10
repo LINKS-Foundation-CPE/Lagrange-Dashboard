@@ -28,6 +28,15 @@ export const MACHINE_METRICS_URL = trimmed(
 export const DOCS_URL = trimmed(import.meta.env.VITE_DOCS_URL);
 
 /**
+ * The machine's calibration reports: the day-by-day page the gateway's
+ * calibration poller publishes in the object store. Linked out to, like the
+ * documentation: each row downloads a report archive, nothing to frame.
+ */
+export const CALIBRATION_REPORTS_URL = trimmed(
+  import.meta.env.VITE_CALIBRATION_REPORTS_URL,
+);
+
+/**
  * Monitors to show as status cards, as `tag` or `tag:Label`, comma-separated —
  * the tags configured in the Kener instance at MACHINE_STATUS_URL.
  *

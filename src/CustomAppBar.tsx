@@ -7,6 +7,7 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useNotifications } from './hooks/useNotifications';
+import { useConfig } from './hooks/useConfig';
 
 
 /**
@@ -86,6 +87,9 @@ export const CustomAppBar = (props: AppBarProps) => {
     const { notifications, markAsRead, markAllAsRead } = useNotifications();
     const notify = useNotify();
     const unreadNotifications = notifications.filter((notification) => !notification.read)
+    // Job-portal-only backends do not mount /api/notifications, so the bell
+    // would poll a 404 and never have anything to show.
+    const { jobPortalOnly } = useConfig();
 
     const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
@@ -126,11 +130,13 @@ export const CustomAppBar = (props: AppBarProps) => {
             <Box flex="1" />
             <PartnerLogos />
             <Box flex="1" />
+            {!jobPortalOnly && (
             <IconButton color="inherit" onClick={handleOpen}>
                 <Badge badgeContent={unreadNotifications.length} color="error">
                     <NotificationsIcon />
                 </Badge>
             </IconButton>
+            )}
             <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}

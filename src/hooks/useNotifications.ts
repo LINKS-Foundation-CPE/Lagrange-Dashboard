@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDataProvider } from 'react-admin';
+import { useConfig } from './useConfig';
 //import { io } from 'socket.io-client';
 
 //const SOCKET_URL = 'http://localhost:4000';
@@ -7,8 +8,13 @@ import { useDataProvider } from 'react-admin';
 export const useNotifications = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const dataProvider = useDataProvider();
+    // A job-portal-only backend does not mount /api/notifications: polling it
+    // every 30 seconds would just fill the console with 404s.
+    const { jobPortalOnly, isLoaded } = useConfig();
 
     useEffect(() => {
+        if (!isLoaded || jobPortalOnly) return;
+
         // Fetch initial notifications from REST
         const fetchNotifications = async () => {
             try {
@@ -53,7 +59,7 @@ export const useNotifications = () => {
         // return () => {
         //     socket.disconnect();
         // };
-    }, [dataProvider]);
+    }, [dataProvider, isLoaded, jobPortalOnly]);
 
     const markAsRead = async (id: string) => {
         try {
