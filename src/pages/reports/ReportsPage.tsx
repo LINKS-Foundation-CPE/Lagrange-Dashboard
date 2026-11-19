@@ -19,6 +19,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
   TableRow,
   TextField,
@@ -29,12 +30,14 @@ import {
   BillingReports,
   CellFormat,
   HtmlReportSection,
+  PAST_FUTURE_NOTE,
   Row,
   cell,
   download,
   prettyColumn,
   toCsv,
   toHtmlReport,
+  totalsRow,
   visibleColumns,
 } from "../../services/billingReports";
 
@@ -119,14 +122,17 @@ const ReportTable = ({
   hideTechnical,
   filename,
   format,
+  note,
 }: {
   title: string;
   rows: Row[];
   hideTechnical: boolean;
   filename: string;
   format: CellFormat;
+  note?: string;
 }) => {
   const columns = visibleColumns(rows, hideTechnical);
+  const totals = totalsRow(rows, columns);
   return (
     <Box sx={{ mb: 4 }}>
       <Stack
@@ -147,6 +153,11 @@ const ReportTable = ({
           CSV
         </Button>
       </Stack>
+      {note && rows.length > 0 && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          {note}
+        </Typography>
+      )}
       {rows.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           (no data)
@@ -172,6 +183,18 @@ const ReportTable = ({
                 </TableRow>
               ))}
             </TableBody>
+            <TableFooter>
+              <TableRow>
+                {columns.map((c) => (
+                  <TableCell
+                    key={c}
+                    sx={{ fontWeight: "bold", color: "text.primary", fontSize: "inherit" }}
+                  >
+                    {cell(c, totals[c], format)}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableFooter>
           </Table>
         </TableContainer>
       )}
@@ -188,6 +211,7 @@ export const ReportsPage = () => {
   const [from, setFrom] = useState(daysFromToday(-90));
   const [to, setTo] = useState(daysFromToday(30));
   const [showOrgReports, setShowOrgReports] = useState(true);
+  const [showSlots, setShowSlots] = useState(true);
   const [hideTechnical, setHideTechnical] = useState(false);
   const [roundToSecond, setRoundToSecond] = useState(false);
   const format: CellFormat = { roundToSecond };
@@ -239,8 +263,10 @@ export const ReportsPage = () => {
   };
 
   /** Narrowing is by name, the way the billing app filtered its frames. */
-  const narrow = <T extends Row>(rows: T[]): T[] =>
-    rows.filter((row) => {
+  // Interfaces have no index signature, so the typed rows are widened to Row
+  // here, once, rather than at every table.
+  const narrow = (typed: object[]): Row[] =>
+    (typed as Row[]).filter((row) => {
       const project = row.project_name as string | null;
       const organization = row.organization_name as string | null;
       if (selectedProjects.size > 0 && project !== null) {
@@ -254,19 +280,25 @@ export const ReportsPage = () => {
 
   const sections: HtmlReportSection[] = useMemo(() => {
     if (!reports) return [];
-    const all: (HtmlReportSection & { filename: string; orgLevel: boolean })[] =
+    const all: (HtmlReportSection & {
+      filename: string;
+      orgLevel: boolean;
+      slots?: boolean;
+    })[] =
       [
         {
           title: "Reservations — projects",
           rows: narrow(reports.reservations.by_project),
           filename: "reservation_durations_by_project.csv",
           orgLevel: false,
+          note: PAST_FUTURE_NOTE,
         },
         {
           title: "Reservations — organizations",
           rows: narrow(reports.reservations.by_organization),
           filename: "reservation_durations_by_org.csv",
           orgLevel: true,
+          note: PAST_FUTURE_NOTE,
         },
         {
           title: "Jobs — projects",
@@ -285,6 +317,7 @@ export const ReportsPage = () => {
           rows: narrow(reports.slots.by_organization),
           filename: "organization_slot_aggregations.csv",
           orgLevel: true,
+          slots: true,
         },
         {
           title: "Reservation usage — projects",
@@ -293,10 +326,18 @@ export const ReportsPage = () => {
           orgLevel: false,
         },
       ];
-    return all.filter((s) => showOrgReports || !s.orgLevel);
+    return all.filter(
+      (s) => (showOrgReports || !s.orgLevel) && (showSlots || !s.slots),
+    );
     // `narrow` closes over the selections, so they belong in the dependencies.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reports, showOrgReports, selectedProjects, selectedOrganizations]);
+  }, [
+    reports,
+    showOrgReports,
+    showSlots,
+    selectedProjects,
+    selectedOrganizations,
+  ]);
 
   return (
     <>
@@ -369,6 +410,18 @@ export const ReportsPage = () => {
                     Enable organization reports
                   </Typography>
                 }
+              />
+              <FormControlLabel
+                sx={{ alignItems: "flex-start", m: 0 }}
+                control={
+                  <Checkbox
+                    size="small"
+                    sx={{ pt: 0 }}
+                    checked={showSlots}
+                    onChange={(e) => setShowSlots(e.target.checked)}
+                  />
+                }
+                label={<Typography variant="body2">Include slots</Typography>}
               />
               <FormControlLabel
                 // The label wraps to several lines at this width; keep the box
@@ -452,6 +505,7 @@ export const ReportsPage = () => {
                 rows={section.rows}
                 hideTechnical={hideTechnical}
                 format={format}
+                note={section.note}
                 filename={
                   (section as HtmlReportSection & { filename: string }).filename
                 }

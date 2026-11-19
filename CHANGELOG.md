@@ -18,6 +18,20 @@ Entries marked **Breaking:** require action on upgrade — typically a change to
 
 ## [Unreleased]
 
+### Added
+- **Billing reports: totals, past and future reservations, optional slots.**
+  - Every table, on the page and in the HTML report, ends with a totals row
+    over the rows it shows, so it follows the project and organization
+    filters. Utilization is recomputed from the summed hours rather than
+    averaged.
+  - The reservation tables show past and future counts and hours, split at
+    24 hours from when the report is generated (needs quantum-api with the
+    split; an older backend simply shows no such columns).
+  - An *Include slots* checkbox leaves the slots table out of the page and the
+    HTML report.
+
+  CSV downloads stay data-only, without a totals row, so they import cleanly.
+
 ## [2026.11.0] — 2026-11-10
 
 ### Fixed
